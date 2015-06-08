@@ -20,6 +20,7 @@ import models.Matches
 object BirdWatch extends Controller {
   val elasticTweetURL = Conf.get("elastic.TweetURL")
   val PercolationQueryURL = Conf.get("elastic.PercolationQueryURL")
+  val defaultSearchField = Conf.get("elastic.defaultSearchField")
 
   val dtFormat = ISODateTimeFormat.dateTime()
   val queryDefaults = "&default_field:text$default_operator:AND&sort=id:desc"
@@ -74,7 +75,7 @@ object BirdWatch extends Controller {
     req =>
       LogstashLogger.logRequest(req, "/tweetFeed?q=" + q, 200, 0)
 
-      val query = Json.obj("query" -> Json.obj("query_string" -> Json.obj("default_field" -> "text",
+      val query = Json.obj("query" -> Json.obj("query_string" -> Json.obj("default_field" -> defaultSearchField,
         "default_operator" -> "AND", "query" -> ("(" + q + ") AND lang:en"))),
         "timestamp" -> dtFormat.print(new DateTime(DateTimeZone.UTC)))
 

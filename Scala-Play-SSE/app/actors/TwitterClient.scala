@@ -19,7 +19,7 @@ import models.Matches
 import utilities.Conf
 
 object TwitterClient {
-  val twitterURL = Conf.get("twitter.URL")
+  val twitterURL = Conf.getOrEmpty("twitter.URL")
   val elasticTweetURL = Conf.get("elastic.TweetURL")
   val elasticPercolatorURL = Conf.get("elastic.PercolatorURL")
   val backOffInterval = 60 * 15 * 1000
@@ -107,17 +107,21 @@ object TwitterClient {
   /** Starts new WS connection to Twitter Streaming API. Twitter disconnects the previous one automatically.
     * Can this be ended explicitly from here though, without resetting the whole underlying client? */
   def start() {
-    Logger.info(s"Starting new client")
-    resetCache()
+    if (!twitterURL.isEmpty) {
+      Logger.info(s"Starting new client")
+      resetCache()
 
-    val topicString = URLEncoder.encode(topics.mkString("%2C"), "UTF-8")
-    val userString = URLEncoder.encode(users.mkString("%2C"), "UTF-8")
-    val url = twitterURL + "track=" + topicString + "&follow=" + userString
+      val topicString = URLEncoder.encode(topics.mkString("%2C"), "UTF-8")
+      val userString = URLEncoder.encode(users.mkString("%2C"), "UTF-8")
+      val url = twitterURL + "track=" + topicString + "&follow=" + userString
 
-    WS.url(url)
-      .withRequestTimeout(-1)
-      .sign(OAuthCalculator(Conf.consumerKey, Conf.accessToken))
-      .get(_ => tweetIteratee(DateTime.now))
+      WS.url(url)
+        .withRequestTimeout(-1)
+        .sign(OAuthCalculator(Conf.consumerKey, Conf.accessToken))
+        .get(_ => tweetIteratee(DateTime.now))
+    } else {
+      Logger.warn("No twitter URL was supplied. Not subscribing to any live twitter stream! Only getting results from elastic!")
+    }
   }
 
   /** Actor taking care of monitoring the WS connection */
@@ -130,7 +134,13 @@ object TwitterClient {
       case AddTopic(topic)  => topics.add(topic)
       case AddUser(user)  => users.add(user)
       case RemoveTopic(topic) => topics.remove(topic)
-      case Start => start()
+      case Start => {
+        if (!twitterURL.isEmpty) {
+          start()
+        } else {
+          Logger.warn("No twitter URL was supplied. Not subscribing to any live twitter stream! Only getting results from elastic!")
+        }
+      }
       case CheckStatus => if (now - lastTweetReceived > retryInterval && now - lastBackOff > backOffInterval) start()
       case BackOff => lastBackOff = now
       case TweetReceived => lastTweetReceived = now

@@ -15,7 +15,7 @@ object Conf {
   def getOrEmpty(key: String): String = current.configuration.getString(key).getOrElse("")
 
   /** OAuth consumer key and secret for Twitter Streaming API */
-  val consumerKey = ConsumerKey(Conf.get("twitter.consumer.key"), Conf.get("twitter.consumer.secret"))
+  val consumerKey = ConsumerKey(Conf.getOrEmpty("twitter.consumer.key"), Conf.getOrEmpty("twitter.consumer.secret"))
   /** OAuth request key and secret for Twitter Streaming API */
-  val accessToken = RequestToken(Conf.get("twitter.accessToken.key"), Conf.get("twitter.accessToken.secret"))
+  val accessToken = RequestToken(Conf.getOrEmpty("twitter.accessToken.key"), Conf.getOrEmpty("twitter.accessToken.secret"))
 }

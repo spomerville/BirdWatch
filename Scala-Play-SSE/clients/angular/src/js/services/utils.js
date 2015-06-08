@@ -6,7 +6,8 @@ angular.module('birdwatch.services').factory('utils', function () {
     var formatTweet = function (t) {
         /** results from ElasticSearch are wrapped in object inside _source property */
         if (t.hasOwnProperty('_source')) { t = t._source; }
-        
+        if (t.hasOwnProperty('raw')) { t = t.raw; }
+
         var tags = t.entities.hashtags;
         var mentions = t.entities.user_mentions;
         var urls = t.entities.urls;
