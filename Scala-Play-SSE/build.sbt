@@ -1,6 +1,12 @@
+import com.github.play2war.plugin._
+
 name := "BirdWatch"
 
 version := "0.3.0"
+
+Play2WarPlugin.play2WarSettings
+
+Play2WarKeys.servletVersion := "3.0"
 
 libraryDependencies ++= Seq(
   "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
